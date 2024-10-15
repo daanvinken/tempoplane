@@ -66,7 +66,5 @@ func SendSlackNotificationActivity(ctx context.Context, webhookURL, message stri
 
 		return "", fmt.Errorf("non-OK response from Slack: %d", resp.StatusCode)
 	}
-
-	log.Info().Msg("Slack notification sent successfully")
 	return "Slack notification sent successfully", nil
 }

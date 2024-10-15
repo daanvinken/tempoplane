@@ -22,7 +22,7 @@ func main() {
 	defer c.Close()
 
 	// Define the task queue that the workflow worker is listening on
-	taskQueue := "my-task-queue"
+	taskQueue := "TempoPlane-HostLocalFile"
 
 	// Configure workflow execution options
 	workflowOptions := client.StartWorkflowOptions{
@@ -30,11 +30,10 @@ func main() {
 		ID:        utils.GenerateWorkflowID(),
 	}
 
-	// Define input parameters for the CreateWorkflow
-	entityID := "entity-123"
-
 	entityInput := entityworkflow.EntityInput{
-		EntityID:      entityID,
+		EntityID:      "entity-123",
+		Kind:          "HostLocalFile",
+		APIVersion:    "0.0.1",
 		Data:          "SomeTestDataCouldBeJSON",
 		RequesterID:   os.Getenv("USER"),
 		DC:            "EIN1",

@@ -81,7 +81,7 @@ func main() {
 	defer c.Close()
 
 	// Initialize the Invoker with the client and task queue name
-	taskQueue := "my-task-queue"
+	taskQueue := "TempoPlane-HostLocalFile"
 	myInvoker := invoker.NewInvoker(c, taskQueue)
 
 	// Create an instance of the user's CRUD workflow implementation

@@ -2,6 +2,8 @@ package entityworkflow
 
 type EntityInput struct {
 	EntityID      string
+	Kind          string
+	APIVersion    string
 	Data          string
 	RequesterID   string
 	DC            string
