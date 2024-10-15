@@ -2,9 +2,11 @@ package invoker
 
 import (
 	"github.com/daanvinken/tempoplane/pkg/entityworkflow"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
-	"log"
+	"os"
 )
 
 type Invoker struct {
@@ -12,30 +14,34 @@ type Invoker struct {
 	taskQueue string
 }
 
-// NewInvoker initializes a new Invoker with the Temporal client and task queue
+// NewInvoker initializes a new Invoker with zerolog for structured logging
 func NewInvoker(c client.Client, taskQueue string) *Invoker {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
 	return &Invoker{
 		client:    c,
 		taskQueue: taskQueue,
 	}
 }
 
-// RegisterAndRun takes a user implementation of CRUDWorkflow, registers, and runs it
-func (inv *Invoker) RegisterAndRun(workflows entityworkflow.CRUDWorkflow) {
+// RegisterAndRun takes CRUDWorkflow and RegisterActivities functions to register workflows and activities
+func (inv *Invoker) RegisterAndRun(workflows entityworkflow.CRUDWorkflow, registerActivities func(worker.Worker)) {
 	w := worker.New(inv.client, inv.taskQueue, worker.Options{})
 
-	// Register the workflows from the CRUDWorkflow implementation
+	// Register the CRUD workflows
 	w.RegisterWorkflow(workflows.CreateWorkflow)
 	w.RegisterWorkflow(workflows.ReadWorkflow)
 	w.RegisterWorkflow(workflows.UpdateWorkflow)
 	w.RegisterWorkflow(workflows.DeleteWorkflow)
 
-	// Start the worker to listen for workflow tasks
+	// Call the user-provided function to register activities
+	registerActivities(w)
+
 	go func() {
+		log.Info().Str("taskQueue", inv.taskQueue).Msg("Starting worker")
 		if err := w.Start(); err != nil {
-			log.Fatalf("Unable to start Temporal worker: %v", err)
+			log.Fatal().Err(err).Msg("Unable to start Temporal worker")
 		}
 	}()
-
-	log.Printf("Worker started and workflows registered on task queue: %s", inv.taskQueue)
 }
