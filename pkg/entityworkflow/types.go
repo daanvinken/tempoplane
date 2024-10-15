@@ -10,7 +10,16 @@ type EntityInput struct {
 	CorrelationID string
 }
 
+// Status represents the status of a workflow operation.
+type Status string
+
+const (
+	StatusSuccess Status = "success"
+	StatusError   Status = "error"
+	StatusUnknown Status = "unknown"
+)
+
 type EntityOutput struct {
-	Status  string
+	Status  Status
 	Message string
 }

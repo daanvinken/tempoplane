@@ -1,10 +1,9 @@
-// examples/main.go
-
 package main
 
 import (
 	"fmt"
 	"github.com/daanvinken/tempoplane/internal/invoker"
+	ew "github.com/daanvinken/tempoplane/pkg/entityworkflow"
 	"github.com/rs/zerolog/log"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -16,7 +15,7 @@ import (
 // User's implementation of the CRUDWorkflow interface
 type MyEntityWorkflow struct{}
 
-func (w *MyEntityWorkflow) CreateWorkflow(ctx workflow.Context, entityID string, data string) (string, error) {
+func (w *MyEntityWorkflow) CreateWorkflow(ctx workflow.Context, entityInput ew.EntityInput) (ew.EntityOutput, error) {
 	ao := workflow.ActivityOptions{
 		StartToCloseTimeout: time.Second * 5,
 	}
@@ -24,44 +23,44 @@ func (w *MyEntityWorkflow) CreateWorkflow(ctx workflow.Context, entityID string,
 
 	// Execute CreateFileActivity
 	var fileResult string
-	err := workflow.ExecuteActivity(ctx, CreateFileActivity, fmt.Sprintf("/tmp/%s.txt", entityID), data).Get(ctx, &fileResult)
+	err := workflow.ExecuteActivity(ctx, CreateFileActivity, fmt.Sprintf("/tmp/%s.txt", entityInput.EntityID), entityInput.Data).Get(ctx, &fileResult)
 	if err != nil {
-		log.Error().Err(err).Str("entityID", entityID).Msg("Failed to create file")
-		return "", fmt.Errorf("failed to create file: %w", err)
+		log.Error().Err(err).Str("entityID", entityInput.EntityID).Msg("Failed to create file")
+		return ew.EntityOutput{Status: ew.StatusError, Message: "Failed to create file"}, fmt.Errorf("failed to create file: %w", err)
 	}
-	log.Info().Str("entityID", entityID).Msg("File created successfully")
+	log.Info().Str("entityID", entityInput.EntityID).Msg("File created successfully")
 
 	// Execute SendSlackNotificationActivity
 	var slackResult string
 	slackWebhookURL := os.Getenv("SLACK_WEBHOOK_URL")
-	err = workflow.ExecuteActivity(ctx, SendSlackNotificationActivity, slackWebhookURL, fmt.Sprintf("Entity %s created with data %s", entityID, data)).Get(ctx, &slackResult)
+	err = workflow.ExecuteActivity(ctx, SendSlackNotificationActivity, slackWebhookURL, fmt.Sprintf("Entity %s created with data %s", entityInput.EntityID, entityInput.Data)).Get(ctx, &slackResult)
 	if err != nil {
-		log.Error().Err(err).Str("entityID", entityID).Msg("Failed to send Slack notification")
-		return "", fmt.Errorf("failed to send Slack notification: %w", err)
+		log.Error().Err(err).Str("entityID", entityInput.EntityID).Msg("Failed to send Slack notification")
+		return ew.EntityOutput{Status: ew.StatusError, Message: "Failed to send Slack notification"}, fmt.Errorf("failed to send Slack notification: %w", err)
 	}
-	log.Info().Str("entityID", entityID).Msg("Slack notification sent successfully")
+	log.Info().Str("entityID", entityInput.EntityID).Msg("Slack notification sent successfully")
 
 	// Return combined result
 	finalResult := fmt.Sprintf("%s; %s", fileResult, slackResult)
-	return finalResult, nil
-}
-func (w *MyEntityWorkflow) ReadWorkflow(ctx workflow.Context, entityID string) (string, error) {
-	// User's custom activities within the Read workflow
-	workflow.GetLogger(ctx).Info("Running ReadWorkflow", "entityID", entityID)
-	return fmt.Sprintf("Read entity %s", entityID), nil
+	return ew.EntityOutput{Status: ew.StatusSuccess, Message: finalResult}, nil
 }
 
-func (w *MyEntityWorkflow) UpdateWorkflow(ctx workflow.Context, entityID string, data string) (string, error) {
-	// User's custom activities within the Update workflow
-	workflow.GetLogger(ctx).Info("Running UpdateWorkflow", "entityID", entityID, "data", data)
-	return fmt.Sprintf("Updated entity %s with data: %s", entityID, data), nil
+func (w *MyEntityWorkflow) ReadWorkflow(ctx workflow.Context, entityInput ew.EntityInput) (ew.EntityOutput, error) {
+	workflow.GetLogger(ctx).Info("Running ReadWorkflow", "entityID", entityInput.EntityID)
+	message := fmt.Sprintf("Read entity %s", entityInput.EntityID)
+	return ew.EntityOutput{Status: ew.StatusSuccess, Message: message}, nil
 }
 
-func (w *MyEntityWorkflow) DeleteWorkflow(ctx workflow.Context, entityID string) (string, error) {
-	// User's custom activities within the Delete workflow
-	workflow.GetLogger(ctx).Info("Running DeleteWorkflow", "entityID", entityID)
-	fmt.Println("test")
-	return fmt.Sprintf("Deleted entity %s", entityID), nil
+func (w *MyEntityWorkflow) UpdateWorkflow(ctx workflow.Context, entityInput ew.EntityInput) (ew.EntityOutput, error) {
+	workflow.GetLogger(ctx).Info("Running UpdateWorkflow", "entityID", entityInput.EntityID, "data", entityInput.Data)
+	message := fmt.Sprintf("Updated entity %s with data: %s", entityInput.EntityID, entityInput.Data)
+	return ew.EntityOutput{Status: ew.StatusSuccess, Message: message}, nil
+}
+
+func (w *MyEntityWorkflow) DeleteWorkflow(ctx workflow.Context, entityInput ew.EntityInput) (ew.EntityOutput, error) {
+	workflow.GetLogger(ctx).Info("Running DeleteWorkflow", "entityID", entityInput.EntityID)
+	message := fmt.Sprintf("Deleted entity %s", entityInput.EntityID)
+	return ew.EntityOutput{Status: ew.StatusSuccess, Message: message}, nil
 }
 
 // RegisterActivities registers the CreateFileActivity and SendSlackNotificationActivity with the worker.
