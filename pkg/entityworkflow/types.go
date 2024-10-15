@@ -1,15 +1,15 @@
 package entityworkflow
 
 type EntityInput struct {
-	EntityID      string
-	Kind          string
-	APIVersion    string
-	Data          string
-	RequesterID   string
-	DC            string
-	Env           string
-	Timestamp     int64
-	CorrelationID string
+	EntityID      string `json:"entityID,omitempty"`
+	Kind          string `json:"kind,omitempty"`
+	APIVersion    string `json:"apiVersion,omitempty"`
+	Data          string `json:"data,omitempty"`
+	RequesterID   string `json:"requesterID,omitempty"`
+	DC            string `json:"dc,omitempty"`
+	Env           string `json:"env,omitempty"`
+	Timestamp     int64  `json:"timestamp,omitempty"`
+	CorrelationID string `json:"correlationID,omitempty"`
 }
 
 // Status represents the status of a workflow operation.
@@ -22,6 +22,6 @@ const (
 )
 
 type EntityOutput struct {
-	Status  Status
-	Message string
+	Status  Status `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
 }
