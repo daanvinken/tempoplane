@@ -27,7 +27,7 @@ func main() {
 	// Configure workflow execution options
 	workflowOptions := client.StartWorkflowOptions{
 		TaskQueue: taskQueue,
-		ID:        utils.GenerateWorkflowID(),
+		ID:        utils.GenerateWorkflowID(os.Getenv("USER")),
 	}
 
 	entityInput := entityworkflow.EntityInput{
