@@ -14,7 +14,7 @@ type Invoker struct {
 	taskQueue string
 }
 
-// NewInvoker initializes a new Invoker with zerolog for structured logging
+// NewInvoker initializes a new Invoker
 func NewInvoker(c client.Client, taskQueue string) *Invoker {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})

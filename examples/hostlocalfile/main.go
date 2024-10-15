@@ -58,15 +58,29 @@ func (w *MyEntityWorkflow) UpdateWorkflow(ctx workflow.Context, entityInput ew.E
 }
 
 func (w *MyEntityWorkflow) DeleteWorkflow(ctx workflow.Context, entityInput ew.EntityInput) (ew.EntityOutput, error) {
-	workflow.GetLogger(ctx).Info("Running DeleteWorkflow", "entityID", entityInput.EntityID)
-	message := fmt.Sprintf("Deleted entity %s", entityInput.EntityID)
-	return ew.EntityOutput{Status: ew.StatusSuccess, Message: message}, nil
+	ao := workflow.ActivityOptions{
+		StartToCloseTimeout: time.Second * 5,
+	}
+	ctx = workflow.WithActivityOptions(ctx, ao)
+
+	// Execute DeleteFileActivity
+	var result string
+	filePath := fmt.Sprintf("/tmp/%s", entityInput.EntityID)
+	err := workflow.ExecuteActivity(ctx, DeleteFileActivity, filePath).Get(ctx, &result)
+	if err != nil {
+		log.Error().Err(err).Str("entityID", entityInput.EntityID).Msg("Failed to delete file")
+		return ew.EntityOutput{Status: ew.StatusError, Message: "Failed to delete file"}, fmt.Errorf("failed to delete file: %w", err)
+	}
+	log.Info().Str("entityID", entityInput.EntityID).Msg("File deleted successfully")
+
+	return ew.EntityOutput{Status: ew.StatusSuccess, Message: result}, nil
 }
 
 // RegisterActivities registers the CreateFileActivity and SendSlackNotificationActivity with the worker.
 func RegisterActivities(w worker.Worker) {
 	w.RegisterActivity(CreateFileActivity)
 	w.RegisterActivity(SendSlackNotificationActivity)
+	w.RegisterActivity(DeleteFileActivity)
 }
 
 func main() {

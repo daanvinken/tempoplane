@@ -68,3 +68,15 @@ func SendSlackNotificationActivity(ctx context.Context, webhookURL, message stri
 	}
 	return "Slack notification sent successfully", nil
 }
+
+// DeleteFileActivity deletes a file on the filesystem at the specified path.
+func DeleteFileActivity(ctx context.Context, filePath string) (string, error) {
+	log.Info().Str("filePath", filePath).Msg("Deleting file")
+	err := os.Remove(filePath)
+	if err != nil {
+		log.Error().Err(err).Str("filePath", filePath).Msg("Failed to delete file")
+		return "", fmt.Errorf("failed to delete file: %w", err)
+	}
+	log.Info().Str("filePath", filePath).Msg("File deleted successfully")
+	return fmt.Sprintf("File deleted at %s", filePath), nil
+}

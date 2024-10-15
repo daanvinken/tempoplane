@@ -42,18 +42,37 @@ func main() {
 		CorrelationID: "420",
 	}
 
-	// Start the CreateWorkflow execution remotely
+	// Execute the CreateWorkflow
 	workflowExecution, err := c.ExecuteWorkflow(context.Background(), workflowOptions, entityworkflow.CreateWorkflow, entityInput)
 	if err != nil {
 		log.Fatal().Msgf("Failed to start CreateWorkflow: %v", err)
 	}
-	log.Printf("Started CreateWorkflow with WorkflowID: %s and RunID: %s", workflowExecution.GetID(), workflowExecution.GetRunID())
+	log.Info().Msgf("Started CreateWorkflow with WorkflowID: %s and RunID: %s", workflowExecution.GetID(), workflowExecution.GetRunID())
 
-	// Optional: Wait for the workflow to complete and retrieve the result
-	var result entityworkflow.EntityOutput
-	err = workflowExecution.Get(context.Background(), &result)
+	// TODO Optional: Wait for CreateWorkflow to complete and retrieve the result
+	var createResult entityworkflow.EntityOutput
+	err = workflowExecution.Get(context.Background(), &createResult)
 	if err != nil {
 		log.Fatal().Msgf("Failed to get CreateWorkflow result: %v", err)
 	}
-	fmt.Printf("CreateWorkflow completed successfully with result: %s\n", result)
+	fmt.Printf("CreateWorkflow completed successfully with result: %s\n", createResult.Message)
+
+	// Wait briefly before starting the DeleteWorkflow
+	time.Sleep(2 * time.Second)
+
+	// Prepare and start the DeleteWorkflow execution
+	deleteWorkflowExecution, err := c.ExecuteWorkflow(context.Background(), workflowOptions, entityworkflow.DeleteWorkflow, entityInput)
+	if err != nil {
+		log.Fatal().Msgf("Failed to start DeleteWorkflow: %v", err)
+	}
+	log.Info().Msgf("Started DeleteWorkflow with WorkflowID: %s and RunID: %s", deleteWorkflowExecution.GetID(), deleteWorkflowExecution.GetRunID())
+
+	// TODO Optional: Wait for the DeleteWorkflow to complete and retrieve the result
+	var deleteResult entityworkflow.EntityOutput
+	err = deleteWorkflowExecution.Get(context.Background(), &deleteResult)
+	if err != nil {
+		log.Fatal().Msgf("Failed to get DeleteWorkflow result: %v", err)
+	}
+	fmt.Printf("DeleteWorkflow completed successfully with result: %s\n", deleteResult.Message)
+
 }
