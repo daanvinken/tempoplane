@@ -23,7 +23,7 @@ func (w *MyEntityWorkflow) CreateWorkflow(ctx workflow.Context, entityInput ew.E
 
 	// Execute CreateFileActivity
 	var fileResult string
-	err := workflow.ExecuteActivity(ctx, CreateFileActivity, fmt.Sprintf("/tmp/%s.txt", entityInput.EntityID), entityInput.Data).Get(ctx, &fileResult)
+	err := workflow.ExecuteActivity(ctx, CreateFileActivity, entityInput.Data).Get(ctx, &fileResult)
 	if err != nil {
 		log.Error().Err(err).Str("entityID", entityInput.EntityID).Msg("Failed to create file")
 		return ew.EntityOutput{Status: ew.StatusError, Message: "Failed to create file"}, fmt.Errorf("failed to create file: %w", err)
@@ -53,7 +53,7 @@ func (w *MyEntityWorkflow) ReadWorkflow(ctx workflow.Context, entityInput ew.Ent
 
 func (w *MyEntityWorkflow) UpdateWorkflow(ctx workflow.Context, entityInput ew.EntityInput) (ew.EntityOutput, error) {
 	workflow.GetLogger(ctx).Info("Running UpdateWorkflow", "entityID", entityInput.EntityID, "data", entityInput.Data)
-	message := fmt.Sprintf("Updated entity %s with data: %s", entityInput.EntityID, entityInput.Data)
+	message := fmt.Sprintf("Succesfully created file for '%s' at  '%s'", entityInput.CorrelationID, entityInput.Data)
 	return ew.EntityOutput{Status: ew.StatusSuccess, Message: message}, nil
 }
 
@@ -65,7 +65,7 @@ func (w *MyEntityWorkflow) DeleteWorkflow(ctx workflow.Context, entityInput ew.E
 
 	// Execute DeleteFileActivity
 	var result string
-	filePath := fmt.Sprintf("/tmp/%s", entityInput.EntityID)
+	filePath := fmt.Sprintf(entityInput.Data, entityInput.EntityID)
 	err := workflow.ExecuteActivity(ctx, DeleteFileActivity, filePath).Get(ctx, &result)
 	if err != nil {
 		log.Error().Err(err).Str("entityID", entityInput.EntityID).Msg("Failed to delete file")

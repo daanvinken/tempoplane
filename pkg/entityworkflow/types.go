@@ -6,8 +6,6 @@ type EntityInput struct {
 	APIVersion    string `json:"apiVersion,omitempty"`
 	Data          string `json:"data,omitempty"`
 	RequesterID   string `json:"requesterID,omitempty"`
-	DC            string `json:"dc,omitempty"`
-	Env           string `json:"env,omitempty"`
 	Timestamp     int64  `json:"timestamp,omitempty"`
 	CorrelationID string `json:"correlationID,omitempty"`
 }

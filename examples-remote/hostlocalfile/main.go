@@ -36,8 +36,6 @@ func main() {
 		APIVersion:    "0.0.1",
 		Data:          "SomeTestDataCouldBeJSON",
 		RequesterID:   os.Getenv("USER"),
-		DC:            "EIN1",
-		Env:           "beta",
 		Timestamp:     time.Now().Unix(),
 		CorrelationID: "420",
 	}
