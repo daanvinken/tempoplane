@@ -6,12 +6,14 @@ import (
 
 // EntityInput represents the input data required for CRUD operations on an entity.
 type EntityInput struct {
-	EntityID      string               `json:"entityID,omitempty"`
-	Kind          string               `json:"kind,omitempty"`
-	RequesterID   string               `json:"requesterID,omitempty"`
-	Timestamp     int64                `json:"timestamp,omitempty"`
-	CorrelationID string               `json:"correlationID,omitempty"`
-	Metadata      runtime.RawExtension `json:"metadata,omitempty"` // Flexible field for additional data
+	EntityID          string               `json:"entityID,omitempty"`
+	Kind              string               `json:"kind,omitempty"`
+	APIVersion        string               `json:"apiVersion,omitempty"`
+	Data              string               `json:"data,omitempty"`
+	RequesterID       string               `json:"requesterID,omitempty"`
+	CreationTimestamp int64                `json:"creationTimestamp,omitempty"`
+	CorrelationID     string               `json:"correlationID,omitempty"`
+	Metadata          runtime.RawExtension `json:"metadata,omitempty"` // Flexible field for additional data
 }
 
 // Status represents the status of a workflow operation.
